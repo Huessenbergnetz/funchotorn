@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[funchotorn.main]
+file_filter = translations/funchotorn_<lang>.ts
+minimum_perc = 0
+source_file = translations/funchotorn.ts
+source_lang = en
+type = QT
+
