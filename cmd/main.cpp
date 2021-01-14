@@ -45,7 +45,6 @@ QMap<QString,QString> loadConfig(const QString &filepath)
     }
 
     settings.beginGroup(QStringLiteral("MlsDb"));
-    map.insert(QStringLiteral("mlsdb_tool_path"), settings.value(QStringLiteral("tool_path"), QStringLiteral("/usr/bin/geoclue-mlsdb-tool")).toString());
     map.insert(QStringLiteral("mlsdb_base_host"), settings.value(QStringLiteral("base_host"), QString()).toString());
     map.insert(QStringLiteral("mlsdb_base_path"), settings.value(QStringLiteral("base_path"), QString()).toString());
     settings.endGroup();
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
     if (parser.isSet(update)) {
         auto config = loadConfig(parser.value(configPath));
         if (config.empty()) {
-            return 2;
+            return 1;
         }
 
         config.insert(QStringLiteral("mlsdb_cache_dir"), parser.value(cacheDirPath));

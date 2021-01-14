@@ -54,12 +54,18 @@ private:
 
     void handleError(const QString &msg, int exitCode);
 
+    QString findExecutable(const QString &executable) const;
+
     QMap<QString,QString> m_config;
     QDir m_cacheDir;
     QDir m_dataDir;
     QQueue<std::pair<QString,QString>> m_countryQueue;
     const QString m_currentDateString;
     const QString m_mlsFileName;
+    const QString m_geocluePath;
+    const QString m_gunzipPath;
+    const QString m_tarPath;
+    const QString m_pixzPath;
     std::pair<QString,QString> m_currentCountry;
     QJsonArray m_jsonData;
     QLocale m_locale;

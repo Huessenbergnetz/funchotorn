@@ -23,7 +23,11 @@ Updater::Updater(const QMap<QString,QString> &config, QObject *parent) :
     QObject(parent),
     m_config(config),
     m_currentDateString(QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyy-MM-dd"))),
-    m_mlsFileName(QLatin1String("MLS-full-cell-export-") + m_currentDateString + QLatin1String("T000000.csv"))
+    m_mlsFileName(QLatin1String("MLS-full-cell-export-") + m_currentDateString + QLatin1String("T000000.csv")),
+    m_geocluePath(findExecutable(QStringLiteral("geoclue-mlsdb-tool"))),
+    m_gunzipPath(findExecutable(QStringLiteral("gunzip"))),
+    m_tarPath(findExecutable(QStringLiteral("tar"))),
+    m_pixzPath(findExecutable(QStringLiteral("pixz")))
 {
     m_cacheDir.setPath(m_config.value(QStringLiteral("mlsdb_cache_dir")));
     m_dataDir.setPath(m_config.value(QStringLiteral("mlsdb_data_dir")));
@@ -42,6 +46,34 @@ void Updater::start()
 void Updater::do_start()
 {
     m_overallTimeStart = std::chrono::high_resolution_clock::now();
+
+    if (Q_UNLIKELY(m_geocluePath.isEmpty())) {
+        //: CLI error message
+        //% "Can not find geoclue-mlsdb-tool executable"
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_GEOCLU_NOT_FOUND"), 1);
+        return;
+    }
+
+    if (Q_UNLIKELY(m_gunzipPath.isEmpty())) {
+        //: CLI error message
+        //% "Can not find gunzip executable"
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_GUNZIP_NOT_FOUND"), 1);
+        return;
+    }
+
+    if (Q_UNLIKELY(m_tarPath.isEmpty())) {
+        //: CLI error message
+        //% "Can not find tar executable"
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_TAR_NOT_FOUND"), 1);
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pixzPath.isEmpty())) {
+        //: CLI error message
+        //% "Can not find pixz executable"
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_PIXZ_NOT_FOUND"), 1);
+        return;
+    }
 
     if (Q_UNLIKELY(!m_cacheDir.exists())) {
         //: CLI error message, %1 will be replaced by the path
@@ -74,6 +106,8 @@ void Updater::do_start()
         handleError(qtTrId("FUNCHOTORNCLI_ERR_DATADIR_NOT_READWRITE").arg(cacheDirFi.absoluteFilePath()), 2);
         return;
     }
+
+
 
     const QString mlsHost = m_config.value(QStringLiteral("mlsdb_base_host")).trimmed();
     if (Q_UNLIKELY(mlsHost.isEmpty())) {
@@ -173,7 +207,7 @@ void Updater::decompress()
 
     auto gunzip = new QProcess(this);
     gunzip->setWorkingDirectory(m_cacheDir.path());
-    gunzip->setProgram(QStringLiteral("gunzip"));
+    gunzip->setProgram(m_gunzipPath);
     gunzip->setArguments({QStringLiteral("-k"), QStringLiteral("-f"), m_mlsGzFile->fileName()});
     connect(gunzip, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
         [=](int exitCode, QProcess::ExitStatus exitStatus){ onDecompressFinished(exitCode, exitStatus); });
@@ -367,7 +401,7 @@ void Updater::doConversion()
 
     m_conversionProc = new QProcess(this);
     m_conversionProc->setWorkingDirectory(m_countryTempDir->path());
-    m_conversionProc->setProgram(m_config.value(QStringLiteral("mlsdb_tool_path")));
+    m_conversionProc->setProgram(m_geocluePath);
     m_conversionProc->setArguments({QStringLiteral("-c"), m_currentCountry.second, m_cacheDir.absoluteFilePath(m_mlsFileName)});
     connect(m_conversionProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
         [=](int exitCode, QProcess::ExitStatus exitStatus){ onConversionFinished(exitCode, exitStatus); });
@@ -409,7 +443,7 @@ void Updater::createTarball()
 
     m_tarProc = new QProcess(this);
     m_tarProc->setWorkingDirectory(m_countryTempDir->path());
-    m_tarProc->setProgram(QStringLiteral("tar"));
+    m_tarProc->setProgram(m_tarPath);
     m_tarProc->setArguments({QStringLiteral("--create"), QStringLiteral("--file"), tarName, QStringLiteral("1"), QStringLiteral("2"), QStringLiteral("3"), QStringLiteral("4"), QStringLiteral("5"), QStringLiteral("6"), QStringLiteral("7"), QStringLiteral("8"), QStringLiteral("9")});
     connect(m_tarProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
         [=](int exitCode, QProcess::ExitStatus exitStatus){ onTarballFinished(exitCode, exitStatus); });
@@ -453,7 +487,7 @@ void Updater::compressTarball()
 
     m_xzProc = new QProcess(this);
     m_xzProc->setWorkingDirectory(m_countryTempDir->path());
-    m_xzProc->setProgram(QStringLiteral("pixz"));
+    m_xzProc->setProgram(m_pixzPath);
     m_xzProc->setArguments({QStringLiteral("-9"), tarName, dateDir.absoluteFilePath(xzName)});
     connect(m_xzProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
         [=](int exitCode, QProcess::ExitStatus exitStatus){ onCompressionFinished(exitCode, exitStatus); });
@@ -596,6 +630,19 @@ void Updater::handleError(const QString &msg, int exitCode)
 {
     qCritical("%s", qUtf8Printable(msg));
     QCoreApplication::exit(exitCode);
+}
+
+QString Updater::findExecutable(const QString &executable) const
+{
+    QString path;
+    for (const QString &dir : {QStringLiteral("/usr/local/bin/"), QStringLiteral("/usr/bin/"), QStringLiteral("/bin/")}) {
+        QFileInfo fi(dir + executable);
+        if (fi.exists() && fi.isReadable() && fi.isExecutable()) {
+            path = fi.absoluteFilePath();
+            break;
+        }
+    }
+    return path;
 }
 
 #include "moc_updater.cpp"

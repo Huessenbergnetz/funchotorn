@@ -1,5 +1,3 @@
 [MlsDb]
-tool_path=/usr/bin/geoclue-mlsdb-tool
 base_host=d2koia3g127518.cloudfront.net
 base_path=/export
-logging_backend=stdout
