@@ -48,14 +48,14 @@ private:
     void createChecksum();
     void writeJson();
     void setSymlink();
-    void cleanup();
+    void cleanup() const;
 
     void onDecompressFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onConversionFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onTarballFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onCompressionFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
-    void handleError(const QString &msg, int exitCode);
+    void handleError(const QString &msg, int exitCode) const;
 
     QString findExecutable(const QString &executable) const;
 

@@ -619,13 +619,13 @@ void Updater::setSymlink()
     QDir::setCurrent(currentPath);
 }
 
-void Updater::cleanup()
+void Updater::cleanup() const
 {
     QFile mlsCsvFile(m_cacheDir.absoluteFilePath(m_mlsFileName));
     mlsCsvFile.remove();
 }
 
-void Updater::handleError(const QString &msg, int exitCode)
+void Updater::handleError(const QString &msg, int exitCode) const
 {
     qCritical("%s", qUtf8Printable(msg));
     QCoreApplication::exit(exitCode);
