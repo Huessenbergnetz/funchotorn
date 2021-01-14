@@ -7,7 +7,7 @@
 #define UPDATER_H
 
 #include <QObject>
-#include <QMap>
+#include <QVariantMap>
 #include <QProcess>
 #include <QDir>
 #include <QQueue>
@@ -25,11 +25,14 @@ class Updater : public QObject
 {
     Q_OBJECT
 public:
-    explicit Updater(const QMap<QString,QString> &config, QObject *parent = nullptr);
+    explicit Updater(const QVariantMap &config, QObject *parent = nullptr);
 
     ~Updater() override;
 
     void start();
+
+    void setDataDir(const QString &path);
+    void setCacheDir(const QString &path);
 
 private slots:
     void do_start();
@@ -56,7 +59,7 @@ private:
 
     QString findExecutable(const QString &executable) const;
 
-    QMap<QString,QString> m_config;
+    QVariantMap m_config;
     QDir m_cacheDir;
     QDir m_dataDir;
     QQueue<std::pair<QString,QString>> m_countryQueue;

@@ -7,16 +7,20 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QFileInfo>
+#include <QFile>
 #include <QSettings>
-#include <QMap>
+#include <QVariantMap>
 #include <QTranslator>
 #include <QLocale>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 
 #include "updater.h"
 
-QMap<QString,QString> loadConfig(const QString &filepath)
+QVariantMap loadConfig(const QString &filepath)
 {
-    QMap<QString,QString> map;
+    QVariantMap map;
 
     QFileInfo cfi(filepath);
 
@@ -36,18 +40,33 @@ QMap<QString,QString> loadConfig(const QString &filepath)
 
     qDebug("Reading settings from %s", qUtf8Printable(cfi.absoluteFilePath()));
 
-    QSettings settings(cfi.absoluteFilePath(), QSettings::IniFormat);
-    if (Q_UNLIKELY(settings.status() != QSettings::NoError)) {
-        //: CLI error message, %1 will be replaced by the file path
-        //% "Failed to read configuration file at %1. Please check the syntax of the configuration file."
-        qCritical("%s", qUtf8Printable(qtTrId("FUNCHOTORN_CLI_ERR_CONFIG_INVALID").arg(cfi.absoluteFilePath())));
+    QFile fi(filepath);
+
+    if (Q_UNLIKELY(!fi.open(QIODevice::ReadOnly|QIODevice::Text))) {
+        //: CLI error message, %1 will be replaced by the file path, %2 by the error string
+        //% "Can not open configuration file at %1: %2"
+        qCritical("%s", qUtf8Printable(qtTrId("FUNCHOTORN_CLI_ERR_CONFIG_FAILED_OPEN").arg(cfi.absoluteFilePath(), fi.errorString())));
         return map;
     }
 
-    settings.beginGroup(QStringLiteral("MlsDb"));
-    map.insert(QStringLiteral("mlsdb_base_host"), settings.value(QStringLiteral("base_host"), QString()).toString());
-    map.insert(QStringLiteral("mlsdb_base_path"), settings.value(QStringLiteral("base_path"), QString()).toString());
-    settings.endGroup();
+    QJsonParseError jsonError;
+    const QJsonDocument json = QJsonDocument::fromJson(fi.readAll(), &jsonError);
+    fi.close();
+    if (jsonError.error != QJsonParseError::NoError) {
+        //: CLI error message, %1 will be replaced by the file path, %2 by the JSON error string
+        //% "Failed to parse JSON configuration file at %1: %2"
+        qCritical("%s", qUtf8Printable(qtTrId("FUNCHOTORN_CLI_ERR_JSON_PARSE").arg(cfi.absoluteFilePath(), jsonError.errorString())));
+        return map;
+    }
+
+    if (!json.isObject()) {
+        //: CLI error message, %1 will be replaced by the file path
+        //% "JSON configuration file at %1 does not contain an object as root"
+        qCritical("%s", qUtf8Printable(qtTrId("FUNCHOTORN_CLI_ERR_JSON_NO_OBJECT").arg(cfi.absoluteFilePath())));
+        return map;
+    }
+
+    map = json.object().toVariantMap();
 
     return map;
 }
@@ -122,10 +141,9 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        config.insert(QStringLiteral("mlsdb_cache_dir"), parser.value(cacheDirPath));
-        config.insert(QStringLiteral("mlsdb_data_dir"), parser.value(dataDirPath));
-
         auto updater = new Updater(config, &app);
+        updater->setCacheDir(parser.value(cacheDirPath));
+        updater->setDataDir(parser.value(dataDirPath));
         updater->start();
 
     } else {

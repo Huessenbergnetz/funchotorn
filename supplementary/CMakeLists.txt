@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 add_custom_target(funchotornsupplementary SOURCES
-    config.in
+    config.json
 )
 
-configure_file(config.in ${CMAKE_BINARY_DIR}/supplementary/${PROJECT_NAME}.ini @ONLY)
-
-install(FILES ${CMAKE_BINARY_DIR}/supplementary/${PROJECT_NAME}.ini
+install(FILES ${CMAKE_SOURCE_DIR}/supplementary/config.json
         DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}
-        PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ)
+        PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
+        RENAME ${PROJECT_NAME}.json
+)

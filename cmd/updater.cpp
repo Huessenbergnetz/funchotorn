@@ -19,7 +19,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
-Updater::Updater(const QMap<QString,QString> &config, QObject *parent) :
+Updater::Updater(const QVariantMap &config, QObject *parent) :
     QObject(parent),
     m_config(config),
     m_currentDateString(QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyy-MM-dd"))),
@@ -29,8 +29,7 @@ Updater::Updater(const QMap<QString,QString> &config, QObject *parent) :
     m_tarPath(findExecutable(QStringLiteral("tar"))),
     m_pixzPath(findExecutable(QStringLiteral("pixz")))
 {
-    m_cacheDir.setPath(m_config.value(QStringLiteral("mlsdb_cache_dir")));
-    m_dataDir.setPath(m_config.value(QStringLiteral("mlsdb_data_dir")));
+
 }
 
 Updater::~Updater()
@@ -107,16 +106,16 @@ void Updater::do_start()
         return;
     }
 
+    const QVariantMap mlsdbConfig = m_config.value(QStringLiteral("mlsdb")).toMap();
 
-
-    const QString mlsHost = m_config.value(QStringLiteral("mlsdb_base_host")).trimmed();
+    const QString mlsHost = mlsdbConfig.value(QStringLiteral("host")).toString().trimmed();
     if (Q_UNLIKELY(mlsHost.isEmpty())) {
         //: CLI error message
         //% "Can not download MLS data from an empty host name!"
         handleError(qtTrId("FUNCHOTORN_CLI_ERR_EMPTY_HOST"), 1);
         return;
     }
-    QString mlsPath = m_config.value(QStringLiteral("mlsdb_base_path")).trimmed();
+    QString mlsPath = mlsdbConfig.value(QStringLiteral("path")).toString().trimmed();
     if (Q_UNLIKELY(!mlsPath.startsWith(QLatin1Char('/')))) {
         mlsPath.prepend(QLatin1Char('/'));
     }
@@ -643,6 +642,16 @@ QString Updater::findExecutable(const QString &executable) const
         }
     }
     return path;
+}
+
+void Updater::setCacheDir(const QString &path)
+{
+    m_cacheDir.setPath(path);
+}
+
+void Updater::setDataDir(const QString &path)
+{
+    m_dataDir.setPath(path);
 }
 
 #include "moc_updater.cpp"
