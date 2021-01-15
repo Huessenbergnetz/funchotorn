@@ -18,6 +18,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QHostInfo>
 #include <SimpleMail/SimpleMail>
 
 Updater::Updater(const QVariantMap &config, QObject *parent) :
@@ -623,6 +624,14 @@ void Updater::cleanup() const
 void Updater::handleError(const QString &msg, int exitCode) const
 {
     qCritical("%s", qUtf8Printable(msg));
+
+    //: error notification email body intro text
+    //% "While trying to update the MLS database, the following error occured:"
+    const QString errMsg = qtTrId("FUNCHOTORN_MAIL_ERROR_BODY_INTRO") + QLatin1String("\n\n") + msg;
+
+    //: error notification email subject
+    //% "Error while updating MLS database"
+    sendMail(qtTrId("FUNCHOTORN_MAIL_ERROR_SUBJECT"), errMsg, MailType::Error);
     QCoreApplication::exit(exitCode);
 }
 
@@ -712,7 +721,11 @@ bool Updater::sendMail(const QString &subject, const QString &msg, MailType mail
     message.addTo(recipientAddress);
     message.setSubject(subject);
 
-    auto text = new SimpleMail::MimeText(msg);
+    //: email body signature, %1 will be replaced by the application name, %2 by the app version and %3 by the local host name
+    //% "This message was generated automatically by %1 %2 on %3."
+    const QString mailBody = msg + QLatin1String("\n\n---\n") + qtTrId("FUNCHOTORN_MAIL_BODY_SIGNATURE").arg(QCoreApplication::applicationName(), QCoreApplication::applicationVersion(), QHostInfo::localHostName());
+
+    auto text = new SimpleMail::MimeText(mailBody);
 
     message.addPart(text);
 

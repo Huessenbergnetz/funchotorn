@@ -246,5 +246,21 @@
         <extracomment>CLI error message, %1 will be replaced by the executable name</extracomment>
         <translation type="unfinished"></translation>
     </message>
+    <message id="FUNCHOTORN_MAIL_ERROR_BODY_INTRO">
+        <source>While trying to update the MLS database, the following error occured:</source>
+        <extracomment>error notification email body intro text</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_MAIL_ERROR_SUBJECT">
+        <source>Error while updating MLS database</source>
+        <extracomment>error notification email subject</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_MAIL_BODY_SIGNATURE">
+        <source>This message was generated automatically by %1 %2 on %3.</source>
+        <oldsource>This message was generated automatically by %1 %2 on %3</oldsource>
+        <extracomment>email body signature, %1 will be replaced by the application name, %2 by the app version and %3 by the local host name</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>
