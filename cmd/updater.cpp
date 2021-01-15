@@ -178,7 +178,7 @@ void Updater::onDownloadFinished()
     }
 
     const auto timeEnd = std::chrono::high_resolution_clock::now();
-    const auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count();
+    const auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count());
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
     const QString sizeString = m_locale.toString(gzFileSize) + QLatin1String(" Bytes");
@@ -213,7 +213,7 @@ void Updater::decompress()
 void Updater::onDecompressFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     const auto timeEnd = std::chrono::high_resolution_clock::now();
-    const auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count();
+    const auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count());
 
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
         //: CLI info message, %1 will be replaced by file name, %2 by time in seconds
@@ -363,7 +363,7 @@ void Updater::doConversion()
         writeJson();
         setSymlink();
         const auto timeEnd = std::chrono::high_resolution_clock::now();
-        const auto timeUsed = std::chrono::duration_cast<std::chrono::minutes>(timeEnd - m_overallTimeStart).count();
+        const auto timeUsed = static_cast<qint32>(std::chrono::duration_cast<std::chrono::minutes>(timeEnd - m_overallTimeStart).count());
         // CLI info message
         //% "Finished converting MLS database in %1 minutes"
         qInfo("%s", qUtf8Printable(qtTrId("FUNCHOTORN_CLI_INFO_FINISHED").arg(m_locale.toString(timeUsed))));
@@ -407,7 +407,7 @@ void Updater::doConversion()
 void Updater::onConversionFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     auto timeEnd = std::chrono::high_resolution_clock::now();
-    auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count();
+    auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count());
 
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
         //: CLI info message, %1 will be replaced by the English country name, %2 by the time used in seconds
@@ -449,7 +449,7 @@ void Updater::createTarball()
 void Updater::onTarballFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     auto timeEnd = std::chrono::high_resolution_clock::now();
-    auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count();
+    auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count());
 
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
         //: CLI info message, %1 will be replaced by the English country name, %2 by the time used in seconds
@@ -493,7 +493,7 @@ void Updater::compressTarball()
 void Updater::onCompressionFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     auto timeEnd = std::chrono::high_resolution_clock::now();
-    auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count();
+    auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_timeStart).count());
 
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
         //: CLI info message, %1 will be replaced be the English country name, %2 by the time used in seconds
@@ -543,7 +543,7 @@ void Updater::createChecksum()
     m_jsonData.append(o);
 
     auto timeEnd = std::chrono::high_resolution_clock::now();
-    auto timeUsed = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_countryTimeStart).count();
+    auto timeUsed = static_cast<qint64>(std::chrono::duration_cast<std::chrono::seconds>(timeEnd - m_countryTimeStart).count());
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
     const QString sizeString = m_locale.toString(xzFileSize) + QLatin1String(" Bytes");
