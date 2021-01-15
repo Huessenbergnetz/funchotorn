@@ -1,22 +1,29 @@
 # SPDX-FileCopyrightText: (C) 2021 Matthias Fehring / www.huessenbergnetz.de
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-find_program(LRELEASE_CMD_PATH NAMES lrelease-qt5 lrelease)
+find_program(LRELEASE_CMD_PATH NAMES lrelease-qt5 lrelease REQUIRED)
 set(LRELEASE_CMD ${LRELEASE_CMD_PATH})
 
-if (LRELEASE_CMD)
-    message(STATUS "Found lrelease at ${LRELEASE_CMD}")
-    message(STATUS "Translations are enabled")
+message(STATUS "Found lrelease at ${LRELEASE_CMD}")
 
-    execute_process(COMMAND ${LRELEASE_CMD} -idbased -silent ${CMAKE_CURRENT_SOURCE_DIR}/funchotorn.ts -qm ${CMAKE_CURRENT_BINARY_DIR}/funchotorn.qm)
-    list(APPEND QM_FILES ${CMAKE_CURRENT_BINARY_DIR}/funchotorn.qm)
+set(LANGS de)
 
-    set(LANGS de)
+set(QM_FILES ${CMAKE_CURRENT_BINARY_DIR}/funchotorn.qm)
+set(TS_FILES funchotorn.ts)
 
-    foreach(l ${LANGS})
-        execute_process(COMMAND ${LRELEASE_CMD} -idbased -silent ${CMAKE_CURRENT_SOURCE_DIR}/funchotorn_${l}.ts -qm ${CMAKE_CURRENT_BINARY_DIR}/funchotorn_${l}.qm)
-        list(APPEND QM_FILES ${CMAKE_CURRENT_BINARY_DIR}/funchotorn_${l}.qm)
-    endforeach(l ${LANGS})
+set(LRELEASE_OPTIONS "-idbased" "-silent")
 
-    install (FILES ${QM_FILES} DESTINATION ${CMAKE_INSTALL_LOCALEDIR})
-endif (LRELEASE_CMD)
+foreach(l ${LANGS})
+    set(TRANS_ARGS ${TRANS_ARGS} COMMAND ${LRELEASE_CMD} ${LRELEASE_OPTIONS} funchotorn_${l}.ts -qm ${CMAKE_CURRENT_BINARY_DIR}/funchotorn_${l}.qm)
+    list(APPEND QM_FILES ${CMAKE_CURRENT_BINARY_DIR}/funchotorn_${l}.qm)
+    list(APPEND TS_FILES funchotorn_${l}.ts)
+endforeach(l ${LANGS})
+
+add_custom_target(translations ALL ${LRELEASE_CMD} ${LRELEASE_OPTIONS} funchotorn.ts -qm ${CMAKE_CURRENT_BINARY_DIR}/funchotorn.qm
+    ${TRANS_ARGS}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Compiling translation files"
+    SOURCES ${TS_FILES}
+)
+
+install(FILES ${QM_FILES} DESTINATION ${CMAKE_INSTALL_LOCALEDIR})
