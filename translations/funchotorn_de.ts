@@ -11,11 +11,6 @@
         <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
         <translation>Kann die Konfigurationsdatei unter %1 nicht lesen. Zugriff verweigert.</translation>
     </message>
-    <message id="FUNCHOTORN_CLI_ERR_CONFIG_INVALID">
-        <source>Failed to read configuration file at %1. Please check the syntax of the configuration file.</source>
-        <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
-        <translation>Kann die Konfigurationsdatei unter %1 nicht lesen. Bitte überprüfen Sie die Syntax der Konfigurationsdatei.</translation>
-    </message>
     <message id="FUNCHOTORN_CLI_OPT_CONFIG_PATH">
         <source>Path to the configuration file to be used. Default: %1</source>
         <extracomment>Option description in the cli help, %1 will be replaced by the default path</extracomment>
@@ -213,6 +208,41 @@
         <source>Finished compressing tarball for %1 in %2 seconds</source>
         <extracomment>CLI info message, %1 will be replaced be the English country name, %2 by the time used in seconds</extracomment>
         <translation>Komprimierung von Tarball für %1 in %2 Sekunden abgeschlossen</translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_CONFIG_FAILED_OPEN">
+        <source>Can not open configuration file at %1: %2</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path, %2 by the error string</extracomment>
+        <translation>Kann die Konfigurationsdatei unter %1 nicht öffnen: %2</translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_JSON_PARSE">
+        <source>Failed to parse JSON configuration file at %1: %2</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path, %2 by the JSON error string</extracomment>
+        <translation>JSON-Daten in Konfigurationsdatei unter %1 können nicht verarbeitet werden: %2</translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_JSON_NO_OBJECT">
+        <source>JSON configuration file at %1 does not contain an object as root</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
+        <translation>Die JSON-Daten in der Konfigurationsdatei unter %1 enthalten als Wurzelelement kein Objekt.</translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_OPT_TEST_EMAIL">
+        <source>Send a test email.</source>
+        <extracomment>Option description in the cli help</extracomment>
+        <translation>Versende eine Test-E-Mail.</translation>
+    </message>
+    <message id="FUNCHOTORN_TEST_MAIL_SUBJECT">
+        <source>Funchotorn Test Mail</source>
+        <extracomment>test email subject</extracomment>
+        <translation>Test-E-Mail von Funchotorn</translation>
+    </message>
+    <message id="FUNCHOTORN_TEST_MAIL_BODY">
+        <source>This is a test email to check if your email settings are working.</source>
+        <extracomment>test email body</extracomment>
+        <translation>Dies ist eine Test-E-Mail zum Überprüfen Ihrer E-Mail-Einstellungen.</translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND">
+        <source>Can not find %1 executable</source>
+        <extracomment>CLI error message, %1 will be replaced by the executable name</extracomment>
+        <translation>Kann keine ausführbare Programmdatei für %1 finden</translation>
     </message>
 </context>
 </TS>

@@ -18,6 +18,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <SimpleMail/SimpleMail>
 
 Updater::Updater(const QVariantMap &config, QObject *parent) :
     QObject(parent),
@@ -47,30 +48,24 @@ void Updater::do_start()
     m_overallTimeStart = std::chrono::high_resolution_clock::now();
 
     if (Q_UNLIKELY(m_geocluePath.isEmpty())) {
-        //: CLI error message
-        //% "Can not find geoclue-mlsdb-tool executable"
-        handleError(qtTrId("FUNCHOTORN_CLI_ERR_GEOCLU_NOT_FOUND"), 1);
+        //: CLI error message, %1 will be replaced by the executable name
+        //% "Can not find %1 executable"
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND").arg(QStringLiteral("geoclu-mlsdb-tool")), 1);
         return;
     }
 
     if (Q_UNLIKELY(m_gunzipPath.isEmpty())) {
-        //: CLI error message
-        //% "Can not find gunzip executable"
-        handleError(qtTrId("FUNCHOTORN_CLI_ERR_GUNZIP_NOT_FOUND"), 1);
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND").arg(QStringLiteral("gunzip")), 1);
         return;
     }
 
     if (Q_UNLIKELY(m_tarPath.isEmpty())) {
-        //: CLI error message
-        //% "Can not find tar executable"
-        handleError(qtTrId("FUNCHOTORN_CLI_ERR_TAR_NOT_FOUND"), 1);
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND").arg(QStringLiteral("tar")), 1);
         return;
     }
 
     if (Q_UNLIKELY(m_pixzPath.isEmpty())) {
-        //: CLI error message
-        //% "Can not find pixz executable"
-        handleError(qtTrId("FUNCHOTORN_CLI_ERR_PIXZ_NOT_FOUND"), 1);
+        handleError(qtTrId("FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND").arg(QStringLiteral("pixz")), 1);
         return;
     }
 
@@ -644,6 +639,91 @@ QString Updater::findExecutable(const QString &executable) const
     return path;
 }
 
+bool Updater::sendMail(const QString &subject, const QString &msg, MailType mailType) const
+{
+    const QVariantMap conf = m_config.value(QStringLiteral("mail")).toMap();
+    const bool notifyOnError = conf.value(QStringLiteral("notifyOnError"), false).toBool();
+    const bool notifyOnSuccess = conf.value(QStringLiteral("notifyOnSuccess"), false).toBool();
+
+    if (mailType == MailType::Error && !notifyOnError) {
+        return true;
+    }
+
+    if (mailType == MailType::Success && !notifyOnSuccess) {
+        return true;
+    }
+
+    const QString user = conf.value(QStringLiteral("user")).toString().trimmed();
+    const QString pass = conf.value(QStringLiteral("password")).toString().trimmed();
+    const QString host = conf.value(QStringLiteral("host"), QStringLiteral("localhost")).toString().trimmed();
+    const int port = conf.value(QStringLiteral("port"), 465).toInt();
+
+    const QString authMethodString = conf.value(QStringLiteral("authMethod"), QStringLiteral("plain")).toString().trimmed();
+    SimpleMail::Sender::AuthMethod authMethod = SimpleMail::Sender::AuthPlain;
+    if (authMethodString.compare(QLatin1String("plain"), Qt::CaseInsensitive) == 0) {
+        authMethod = SimpleMail::Sender::AuthPlain;
+    } else if (authMethodString.compare(QLatin1String("login"), Qt::CaseInsensitive) == 0) {
+        authMethod = SimpleMail::Sender::AuthLogin;
+    } else if (authMethodString.compare(QLatin1String("crammd5"), Qt::CaseInsensitive) == 0) {
+        authMethod = SimpleMail::Sender::AuthCramMd5;
+    } else if (authMethodString.compare(QLatin1String("none"), Qt::CaseInsensitive) == 0) {
+        authMethod = SimpleMail::Sender::AuthNone;
+    } else {
+        qWarning("Can not send email. Invalid authentication method: %s", qUtf8Printable(authMethodString));
+        return false;
+    }
+
+    const QString encryptionString = conf.value(QStringLiteral("encryption"), QStringLiteral("ssl")).toString().trimmed();
+    SimpleMail::Sender::ConnectionType conType = SimpleMail::Sender::SslConnection;
+    if (encryptionString.compare(QLatin1String("ssl"), Qt::CaseInsensitive) == 0 || encryptionString.compare(QLatin1String("tls")) == 0) {
+        conType = SimpleMail::Sender::SslConnection;
+    } else if (encryptionString.compare(QLatin1String("starttls"), Qt::CaseInsensitive) == 0) {
+        conType = SimpleMail::Sender::TlsConnection;
+    } else if (encryptionString.compare(QLatin1String("none")) == 0) {
+        conType = SimpleMail::Sender::TcpConnection;
+    } else {
+        qWarning("Can not send email. Invalid encryption type: %s", qUtf8Printable(encryptionString));
+        return false;
+    }
+
+    const QString fromAddress = conf.value(QStringLiteral("fromAddress")).toString().trimmed();
+    if (fromAddress.isEmpty()) {
+        qWarning("%s", "Can not send email. Empty sender address.");
+        return false;
+    }
+    const QString fromName = conf.value(QStringLiteral("fromName")).toString().trimmed();
+    SimpleMail::EmailAddress senderAddress = fromName.isEmpty() ? SimpleMail::EmailAddress(fromAddress) : SimpleMail::EmailAddress(fromAddress, fromName);
+
+    const QString toAddress = conf.value(QStringLiteral("toAddress")).toString().trimmed();
+    if (toAddress.isEmpty()) {
+        qWarning("%s", "Cand not send email. Empty recipient address.");
+        return false;
+    }
+    const QString toName = conf.value(QStringLiteral("toName")).toString().trimmed();
+    SimpleMail::EmailAddress recipientAddress = toName.isEmpty() ? SimpleMail::EmailAddress(toAddress) : SimpleMail::EmailAddress(toAddress, toName);
+
+    SimpleMail::Sender sender(host, port, conType);
+    sender.setUser(user);
+    sender.setPassword(pass);
+    sender.setAuthMethod(authMethod);
+
+    SimpleMail::MimeMessage message;
+    message.setSender(senderAddress);
+    message.addTo(recipientAddress);
+    message.setSubject(subject);
+
+    auto text = new SimpleMail::MimeText(msg);
+
+    message.addPart(text);
+
+    if (Q_UNLIKELY(!sender.sendMail(message))) {
+        qWarning("Failed to send email: %s", qUtf8Printable(sender.lastError()));
+        return false;
+    }
+
+    return true;
+}
+
 void Updater::setCacheDir(const QString &path)
 {
     m_cacheDir.setPath(path);
@@ -652,6 +732,17 @@ void Updater::setCacheDir(const QString &path)
 void Updater::setDataDir(const QString &path)
 {
     m_dataDir.setPath(path);
+}
+
+bool Updater::sendTestMail() const
+{
+    //: test email subject
+    //% "Funchotorn Test Mail"
+    return sendMail(qtTrId("FUNCHOTORN_TEST_MAIL_SUBJECT"),
+                    //: test email body
+                    //% "This is a test email to check if your email settings are working."
+                    qtTrId("FUNCHOTORN_TEST_MAIL_BODY"),
+                    MailType::Forced);
 }
 
 #include "moc_updater.cpp"

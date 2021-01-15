@@ -130,6 +130,12 @@ int main(int argc, char *argv[])
                               qtTrId("FUNCHOTORN_CLI_OPT_UPDATE"));
     parser.addOption(update);
 
+    QCommandLineOption testEmail(QStringLiteral("test-email"),
+                                 //: Option description in the cli help
+                                 //% "Send a test email."
+                                 qtTrId("FUNCHOTORN_CLI_OPT_TEST_EMAIL"));
+    parser.addOption(testEmail);
+
     parser.addHelpOption();
     parser.addVersionOption();
 
@@ -145,6 +151,19 @@ int main(int argc, char *argv[])
         updater->setCacheDir(parser.value(cacheDirPath));
         updater->setDataDir(parser.value(dataDirPath));
         updater->start();
+
+    } else if (parser.isSet(testEmail)) {
+        auto config = loadConfig(parser.value(configPath));
+        if (config.isEmpty()) {
+            return 1;
+        }
+
+        auto updater = new Updater(config, &app);
+        if (updater->sendTestMail()) {
+            return 0;
+        } else {
+            return 4;
+        }
 
     } else {
         parser.showHelp(1);

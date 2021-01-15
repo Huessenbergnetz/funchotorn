@@ -13,6 +13,7 @@ target_link_libraries(funchotorn
     PRIVATE
         Qt5::Core
         Qt5::Network
+        SimpleMail::Core
 )
 
 target_compile_definitions(funchotorn

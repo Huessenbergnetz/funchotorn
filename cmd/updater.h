@@ -34,12 +34,20 @@ public:
     void setDataDir(const QString &path);
     void setCacheDir(const QString &path);
 
+    bool sendTestMail() const;
+
 private slots:
     void do_start();
     void onDownloadReadyRead();
     void onDownloadFinished();
 
 private:
+    enum class MailType {
+        Error,
+        Success,
+        Forced
+    };
+
     void decompress();
     void startConversion();
     void doConversion();
@@ -58,6 +66,7 @@ private:
     void handleError(const QString &msg, int exitCode) const;
 
     QString findExecutable(const QString &executable) const;
+    bool sendMail(const QString &subject, const QString &msg, MailType mailType = MailType::Error) const;
 
     QVariantMap m_config;
     QDir m_cacheDir;

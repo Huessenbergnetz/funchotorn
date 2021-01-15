@@ -2,5 +2,19 @@
     "mlsdb": {
         "host": "d2koia3g127518.cloudfront.net",
         "path": "/export"
+    },
+    "mail": {
+        "notifyOnError": false,
+        "notifyOnSuccess": false,
+        "user": "",
+        "password": "",
+        "host": "localhost",
+        "port": "465",
+        "authMethod": "plain",
+        "encryption": "ssl",
+        "fromAddress": "",
+        "fromName": "",
+        "toAddress": "",
+        "toName": ""
     }
 }

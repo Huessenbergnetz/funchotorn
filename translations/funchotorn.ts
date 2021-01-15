@@ -13,11 +13,6 @@
         <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
         <translation type="unfinished"></translation>
     </message>
-    <message id="FUNCHOTORN_CLI_ERR_CONFIG_INVALID">
-        <source>Failed to read configuration file at %1. Please check the syntax of the configuration file.</source>
-        <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
     <message id="FUNCHOTORN_CLI_OPT_CONFIG_PATH">
         <source>Path to the configuration file to be used. Default: %1</source>
         <extracomment>Option description in the cli help, %1 will be replaced by the default path</extracomment>
@@ -214,6 +209,41 @@
     <message id="FUNCHOTORN_CLI_INFO_FINISHED_COMPRESS">
         <source>Finished compressing tarball for %1 in %2 seconds</source>
         <extracomment>CLI info message, %1 will be replaced be the English country name, %2 by the time used in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_CONFIG_FAILED_OPEN">
+        <source>Can not open configuration file at %1: %2</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path, %2 by the error string</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_JSON_PARSE">
+        <source>Failed to parse JSON configuration file at %1: %2</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path, %2 by the JSON error string</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_JSON_NO_OBJECT">
+        <source>JSON configuration file at %1 does not contain an object as root</source>
+        <extracomment>CLI error message, %1 will be replaced by the file path</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_OPT_TEST_EMAIL">
+        <source>Send a test email.</source>
+        <extracomment>Option description in the cli help</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_TEST_MAIL_SUBJECT">
+        <source>Funchotorn Test Mail</source>
+        <extracomment>test email subject</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_TEST_MAIL_BODY">
+        <source>This is a test email to check if your email settings are working.</source>
+        <extracomment>test email body</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message id="FUNCHOTORN_CLI_ERR_CMD_NOT_FOUND">
+        <source>Can not find %1 executable</source>
+        <extracomment>CLI error message, %1 will be replaced by the executable name</extracomment>
         <translation type="unfinished"></translation>
     </message>
 </context>
