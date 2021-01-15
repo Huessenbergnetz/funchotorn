@@ -1,0 +1,14 @@
+[Unit]
+Description=Update the Mozilla Location Service database
+Documentation=man:funchotorn(1) man:funchotorn.json(5)
+After=network.target time-sync.target
+
+[Service]
+Type=oneshot
+ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/funchotorn -u --journald
+User=@FUNCHOTORN_USER@
+Group=@FUNCHOTORN_GROUP@
+ProtectSystem=full
+ProtectHome=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

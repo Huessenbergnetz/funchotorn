@@ -1,0 +1,5 @@
+[Unit]
+Description=Runs the funchotorn MLS database updater
+
+[Timer]
+OnCalendar=*-*-* 1:00:00 UTC
