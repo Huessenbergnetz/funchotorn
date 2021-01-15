@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR)
 cmake_policy(SET CMP0048 NEW)
 
 project(funchotorn
-        VERSION 0.1.0
+        VERSION 0.2.0
         DESCRIPTION "Downloader and converter for Mozilla Location Service databases"
         LANGUAGES CXX)
 
