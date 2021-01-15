@@ -16,7 +16,53 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
+#ifdef WITH_SYSTEMD
+#include <cstring>
+extern "C"
+{
+#define SD_JOURNAL_SUPPRESS_LOCATION
+#include <systemd/sd-journal.h>
+}
+#endif // WITH_SYSTEMD
+
 #include "updater.h"
+
+#ifdef WITH_SYSTEMD
+void journaldMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    int prio = LOG_INFO;
+    switch (type) {
+    case QtDebugMsg:
+        prio = LOG_DEBUG;
+        break;
+    case QtInfoMsg:
+        prio = LOG_INFO;
+        break;
+    case QtWarningMsg:
+        prio = LOG_WARNING;
+        break;
+    case QtCriticalMsg:
+        prio = LOG_CRIT;
+        break;
+    case QtFatalMsg:
+        prio = LOG_ALERT;
+        break;
+    }
+
+    const QString ctx = QString::fromLatin1(context.category);
+    const QString id = ctx == QLatin1String("default") ? QCoreApplication::applicationName() : QCoreApplication::applicationName() + QLatin1Char('.') + ctx;
+
+#ifdef QT_DEBUG
+    sd_journal_send("PRIORITY=%i", prio, "SYSLOG_FACILITY=%hhu", 1, "SYSLOG_IDENTIFIER=%s", qUtf8Printable(id), "SYSLOG_PID=%lli", QCoreApplication::applicationPid(), "MESSAGE=%s", qFormatLogMessage(type, context, msg).toUtf8().constData(), "CODE_FILE=%s", context.file, "CODE_LINE=%i", context.line, "CODE_FUNC=%s", context.function, NULL);
+#else
+    sd_journal_send("PRIORITY=%i", prio, "SYSLOG_FACILITY=%hhu", 1, "SYSLOG_IDENTIFIER=%s", qUtf8Printable(id), "SYSLOG_PID=%lli", QCoreApplication::applicationPid(), "MESSAGE=%s", qFormatLogMessage(type, context, msg).toUtf8().constData(), NULL);
+#endif
+
+    if (type == QtFatalMsg) {
+        abort();
+    }
+}
+#endif // WITH_SYSTEMD
 
 QVariantMap loadConfig(const QString &filepath)
 {
@@ -130,6 +176,14 @@ int main(int argc, char *argv[])
                               qtTrId("FUNCHOTORN_CLI_OPT_UPDATE"));
     parser.addOption(update);
 
+#ifdef WITH_SYSTEMD
+    QCommandLineOption journald(QStringLiteral("journald"),
+                                //: Option description in the cli help
+                                //% "Write all output to systemd’s journal instead of stdout."
+                                qtTrId("FUNCHOTORN_CLI_OPT_JOURNALD"));
+    parser.addOption(journald);
+#endif // WITH_SYSTEMD
+
     QCommandLineOption testEmail(QStringLiteral("test-email"),
                                  //: Option description in the cli help
                                  //% "Send a test email."
@@ -140,6 +194,13 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
 
     parser.process(app);
+
+#ifdef WITH_SYSTEMD
+    if (parser.isSet(journald)) {
+        qSetMessagePattern(QStringLiteral("%{message}"));
+        qInstallMessageHandler(journaldMessageOutput);
+    }
+#endif // WITH_SYSTEMD
 
     if (parser.isSet(update)) {
         auto config = loadConfig(parser.value(configPath));

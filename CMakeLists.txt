@@ -11,6 +11,7 @@ project(funchotorn
 
 find_package(Qt5 5.6.0 REQUIRED COMPONENTS Core Network)
 find_package(SimpleMail2Qt5 2.1.0 REQUIRED)
+find_package(PkgConfig)
 
 # Auto generate moc files
 set(CMAKE_AUTOMOC ON)

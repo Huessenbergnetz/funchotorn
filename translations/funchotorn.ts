@@ -262,5 +262,10 @@
         <extracomment>email body signature, %1 will be replaced by the application name, %2 by the app version and %3 by the local host name</extracomment>
         <translation type="unfinished"></translation>
     </message>
+    <message id="FUNCHOTORN_CLI_OPT_JOURNALD">
+        <source>Write all output to systemd’s journal instead of stdout.</source>
+        <extracomment>Option description in the cli help</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

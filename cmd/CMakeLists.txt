@@ -35,11 +35,11 @@ target_compile_definitions(funchotorn
 )
 
 if(ENABLE_MAINTAINER_FLAGS)
-    target_compile_definitions(qhrobot
+    target_compile_definitions(funchotorn
         PRIVATE
             QT_DEPRECATED_WARNINGS
     )
-    target_compile_options(qhrobot
+    target_compile_options(funchotorn
         PRIVATE
             -Wall
             -Wcast-align
@@ -50,5 +50,16 @@ if(ENABLE_MAINTAINER_FLAGS)
             -Winit-self
     )
 endif(ENABLE_MAINTAINER_FLAGS)
+
+if(PkgConfig_FOUND)
+    message(STATUS "Found pkgconfig")
+    pkg_check_modules(SYSTEMD QUIET libsystemd)
+    if(SYSTEMD_FOUND)
+        message(STATUS "Found systemd version ${SYSTEMD_VERSION}. Enabling systemd journal support.")
+        target_compile_definitions(funchotorn PRIVATE WITH_SYSTEMD)
+        target_link_libraries(funchotorn PRIVATE ${SYSTEMD_LIBRARIES})
+        target_include_directories(funchotorn PRIVATE ${SYSTEMD_INCLUDE_DIRS})
+    endif(SYSTEMD_FOUND)
+endif(PkgConfig_FOUND)
 
 install(TARGETS funchotorn DESTINATION ${CMAKE_INSTALL_BINDIR})
