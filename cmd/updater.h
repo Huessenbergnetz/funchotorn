@@ -65,7 +65,6 @@ private:
 
     void handleError(const QString &msg, int exitCode) const;
 
-    QString findExecutable(const QString &executable) const;
     bool sendMail(const QString &subject, const QString &msg, MailType mailType = MailType::Error) const;
 
     QVariantMap m_config;

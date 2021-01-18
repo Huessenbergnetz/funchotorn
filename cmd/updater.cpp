@@ -19,6 +19,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QHostInfo>
+#include <QStandardPaths>
 #include <SimpleMail/SimpleMail>
 
 Updater::Updater(const QVariantMap &config, QObject *parent) :
@@ -26,10 +27,10 @@ Updater::Updater(const QVariantMap &config, QObject *parent) :
     m_config(config),
     m_currentDateString(QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyy-MM-dd"))),
     m_mlsFileName(QLatin1String("MLS-full-cell-export-") + m_currentDateString + QLatin1String("T000000.csv")),
-    m_geocluePath(findExecutable(QStringLiteral("geoclue-mlsdb-tool"))),
-    m_gunzipPath(findExecutable(QStringLiteral("gunzip"))),
-    m_tarPath(findExecutable(QStringLiteral("tar"))),
-    m_pixzPath(findExecutable(QStringLiteral("pixz")))
+    m_geocluePath(QStandardPaths::findExecutable(QStringLiteral("geoclue-mlsdb-tool"))),
+    m_gunzipPath(QStandardPaths::findExecutable(QStringLiteral("gunzip"))),
+    m_tarPath(QStandardPaths::findExecutable(QStringLiteral("tar"))),
+    m_pixzPath(QStandardPaths::findExecutable(QStringLiteral("pixz")))
 {
 
 }
@@ -633,19 +634,6 @@ void Updater::handleError(const QString &msg, int exitCode) const
     //% "Error while updating MLS database"
     sendMail(qtTrId("FUNCHOTORN_MAIL_ERROR_SUBJECT"), errMsg, MailType::Error);
     QCoreApplication::exit(exitCode);
-}
-
-QString Updater::findExecutable(const QString &executable) const
-{
-    QString path;
-    for (const QString &dir : {QStringLiteral("/usr/local/bin/"), QStringLiteral("/usr/bin/"), QStringLiteral("/bin/")}) {
-        QFileInfo fi(dir + executable);
-        if (fi.exists() && fi.isReadable() && fi.isExecutable()) {
-            path = fi.absoluteFilePath();
-            break;
-        }
-    }
-    return path;
 }
 
 bool Updater::sendMail(const QString &subject, const QString &msg, MailType mailType) const
